@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from torch.utils.data.dataset import Dataset
 import torch.utils.data as Data
 import os
@@ -37,8 +37,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
     correct = 0
     total = 0
     for step, (inputs, labels) in enumerate(train_loader):
-        inputs = inputs.float()
-        labels = labels.type(torch.LongTensor)
+        inputs = inputs.float().cuda()
+        labels = labels.type(torch.LongTensor).cuda()
         # print("inputs {}, labels {}".format(inputs, labels))
         optimizer.zero_grad()
         
@@ -59,7 +59,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
             running_loss = 0
             correct = 0
             total = 0
-    save_model(epoch, model, optimizer, loss, step, "./weights/")
+    save_model(epoch, model, optimizer, loss, step, "/home/ubuntu/ALL-CNN-C/weights/")
 
 
 def save_model(epoch, model, optimizer, loss, step, save_path):
@@ -95,11 +95,11 @@ def test(test_loader, model, criterion):
     with torch.no_grad():
         for step, (inputs, labels) in enumerate(test_loader):
             print(step)
-            inputs = inputs.float()
-            labels = labels.type(torch.LongTensor)
+            inputs = inputs.float().cuda()
+            labels = labels.type(torch.LongTensor).cuda()
             outputs = model(inputs)
             _, predicted = torch.max(outputs.data, 1)
-            predictions.append(predicted.numpy())
+            predictions.append(predicted.cpu().numpy())
             print(predicted)
     predictions = np.array(predictions)
     predictions = predictions.flatten()
@@ -139,11 +139,11 @@ class CostomDataset(Dataset):
 
 
 def main(nepochs):
-    X = np.load("./dataset/train_feats.npy")
+    X = np.load("/home/ubuntu/ALL-CNN-C/dataset/train_feats.npy")
     print("loading X done")
-    Y = np.load("./dataset/train_labels.npy")
+    Y = np.load("/home/ubuntu/ALL-CNN-C/dataset/train_labels.npy")
     print("loading Y done")
-    test_X = np.load("./dataset/test_feats.npy") 
+    test_X = np.load("/home/ubuntu/ALL-CNN-C/dataset/test_feats.npy") 
     print("loading test_X done")
     X, test_X = P.cifar_10_preprocess(X, test_X)
     print("preprocessing done")
@@ -156,16 +156,19 @@ def main(nepochs):
     
     model = ALL_CNN_C()
     print("model: ", model)
+    if torch.cuda.is_available():
+        print("model in GPU mode")
+        model = model.cuda()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
     start_epoch = 0
-    # model, optimizer, start_epoch, loss = load_model(
-    #     load_epoch, 
-    #     load_step, 
-    #     load_loss, 
-    #     model,
-    #     optimizer, 
-    #     "./weights/")
+    model, optimizer, start_epoch, loss = load_model(
+        load_epoch, 
+        load_step, 
+        load_loss, 
+        model,
+        optimizer, 
+        "/home/ubuntu/ALL-CNN-C/weights/")
 
     for epoch in range(start_epoch, nepochs):
         model.train()
@@ -179,10 +182,10 @@ def main(nepochs):
 
 
 if __name__ == '__main__':
-    nepochs = 2
-    batch_size = 64
+    nepochs = 20
+    batch_size = 50
     learning_rate = 0.01
-    load_epoch = 0
-    load_step = 499
-    load_loss = 2.302695
+    load_epoch = 19
+    load_step = 999
+    load_loss = 0.284484
     main(nepochs)
