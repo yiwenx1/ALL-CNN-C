@@ -91,6 +91,7 @@ def load_model(epoch, step, loss, model, optimizer, save_path):
     
 
 def test(test_loader, model, criterion):
+    model.eval()
     predictions = []
     with torch.no_grad():
         for step, (inputs, labels) in enumerate(test_loader):
@@ -152,7 +153,7 @@ def main(nepochs):
     test_data = CostomDataset(X, Y, test_X, "test")
 
     train_loader = Data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True, num_workers=4)
-    test_loader = Data.DataLoader(dataset=test_data, batch_size=batch_size, shuffle=True, num_workers=4)
+    test_loader = Data.DataLoader(dataset=test_data, batch_size=batch_size, shuffle=False, num_workers=4)
     
     model = ALL_CNN_C()
     print("model: ", model)
@@ -160,7 +161,7 @@ def main(nepochs):
         print("model in GPU mode")
         model = model.cuda()
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=0.001)
     start_epoch = 0
     model, optimizer, start_epoch, loss = load_model(
         load_epoch, 
@@ -175,17 +176,16 @@ def main(nepochs):
         print("########## epoch {} ##########".format(epoch))
         train(train_loader, model, criterion, optimizer, epoch)
     print("########## Finished Training ##########")
-    model.eval()
     predictions = test(test_loader, model, criterion) 
     print("########## Finished Testing ##########")
     write_results(predictions)
 
 
 if __name__ == '__main__':
-    nepochs = 20
+    nepochs = 40
     batch_size = 50
-    learning_rate = 0.01
-    load_epoch = 19
+    learning_rate = 0.001
+    load_epoch = 39
     load_step = 999
-    load_loss = 0.284484
+    load_loss = 0.175909
     main(nepochs)

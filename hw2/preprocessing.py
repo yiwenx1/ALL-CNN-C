@@ -48,7 +48,7 @@ def feature_zero_mean(x, xtest):
         
 
 
-def zca(x, xtest, bias=0.1):
+def zca(x, xtest, bias=1e-4):
     """
     ZCA training data. Use train statistics to normalize test data.
     :param x: float32(shape=(samples, features)) (assume mean=0)

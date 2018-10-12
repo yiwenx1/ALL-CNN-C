@@ -2,3 +2,4 @@
 .vscode/
 handin.tar
 __pycache__/
+*.npy
